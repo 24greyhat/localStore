@@ -31,7 +31,7 @@ class LocalStore:
             with open(self.path, 'wb') as f:
                 f.write(encrypt("{}", self.pk))
     
-    def read(self)->dict:
+    def load(self)->dict:
         with open(self.path, 'rb') as f:
             r = f.read()
             try:
@@ -44,30 +44,19 @@ class LocalStore:
                 return None
 
 
-    def write(self, obj):
-        c = self.read()
+    def dump(self, obj):
+        c = self.load()
         r = dict()
         if c:
             r.update(c)
+        r.update(obj)
+
+        with open(self.path, 'wb') as f:
+            f.write(encrypt(str(r), self.pk))
+    
+    def remove(self, key):
+        r = self.load()
+        if key in r:
+            r.pop(key)
             with open(self.path, 'wb') as f:
                 f.write(encrypt(str(r), self.pk))
-        else:
-            r.update(obj)
-            with open(self.path, 'wb') as f:
-                f.write(encrypt(str(r), self.pk))
-
-    
-    def update(self, key, newValue):
-        self.write({key:newValue})
-    
-    def search(self, query: str):
-        r = []
-        for k,v in self.read().items():
-            if str(k).lower() in query.lower():
-                r.append({k:v})
-            
-            if str(v).lower() in query.lower():
-                r.append({k:v})
-        return r
-    
-
